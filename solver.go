@@ -1,7 +1,6 @@
 package battleshipsolver
 
 import (
-	"fmt"
 	"strconv"
 )
 
@@ -79,25 +78,40 @@ func (s *Solver) Evaluate() {
 
 func (s *Solver) EvaluateTarget() {
     s.Probabilities = NewProbabilities()
-    //outOfBoundsMask, _ := strconv.ParseUint("0000000000111111", 2, 64)
-    //for _, ship := range s.Fleet.ships {
-    ship := s.Fleet.ships["submarine"]
+    outOfBoundsMask, _ := strconv.ParseUint("0000000000111111", 2, 64)
+    markMask, _ := strconv.ParseUint(MARK_MASK, 2, 64)
+    for _, ship := range s.Fleet.ships {
         for x, row := range s.TargetBoard.xy {
-            if x < 1 {
-                for y := 0; y < BOARD_SIZE; y++ {
-                    fmt.Printf("X: %d\nY: %d\nrow1: %s\nrow2: %s\nship: %s\ncalc: %s\n\n", x, y, bin(s.HuntBoard.xy[x]), bin(row), bin(ship.Mask>>y), bin(row | (ship.Mask>>y)))
-                    if row | (ship.Mask>>y) > row {
-                        for i := 0; i < ship.Length; i++ {
-                            if y + i < BOARD_SIZE {
-                                s.Probabilities[x][y+i] += 1
-                            }
+            row = row | uint(outOfBoundsMask)
+            for y := 0; y < BOARD_SIZE; y++ {
+                if row | (ship.Mask>>y) > row && s.HuntBoard.xy[x] & (ship.Mask>>y) == ship.Mask>>y {
+                    for i := 0; i < ship.Length; i++ {
+                        if y + i < BOARD_SIZE {
+                            s.Probabilities[x][y+i] += 1
                         }
                     }
                 }
-                // try marching with 1000000000 to see if there's a zero
+                if row & (uint(markMask)>>y) == 0 {
+                    s.Probabilities[x][y] = 0
+                }
             }
         }
-    //}
+        for x, row := range s.TargetBoard.yx {
+            row = row | uint(outOfBoundsMask)
+            for y := 0; y < BOARD_SIZE; y++ {
+                if row | (ship.Mask>>y) > row && s.HuntBoard.yx[x] & (ship.Mask>>y) == ship.Mask>>y {
+                    for i := 0; i < ship.Length; i++ {
+                        if y + i < BOARD_SIZE {
+                            s.Probabilities[y+i][x] += 1
+                        }
+                    }
+                }
+                if row & (uint(markMask)>>y) == 0 {
+                    s.Probabilities[y][x] = 0
+                }
+            }
+        }
+    }
 }
 
 func bin(n uint) string {
