@@ -2,56 +2,54 @@ package battleshipsolver
 
 import (
 	"fmt"
-	"strconv"
 )
 
 const (
-    BOARD_SIZE = 10
-    INIT_ROW = "1111111111000000"
-    MARK_MASK = "1000000000000000"
+    boardSize = 10
+    rowMask uint = 65472   // 1111111111000000
+    pegMask uint = 32768  // 1000000000000000
 )
 
-type Board struct {
-    xy [BOARD_SIZE]uint
-    yx [BOARD_SIZE]uint
+type board struct {
+    xy [boardSize]uint
+    yx [boardSize]uint
 }
 
-type Probabilities [BOARD_SIZE][BOARD_SIZE]int
+type probabilities [boardSize][boardSize]int
 
-func NewBoard() *Board {
-    initRow, _ := strconv.ParseUint(INIT_ROW, 2, 64)
-    board := &Board{
-        xy: [BOARD_SIZE]uint{
-            uint(initRow),
-            uint(initRow),
-            uint(initRow),
-            uint(initRow),
-            uint(initRow),
-            uint(initRow),
-            uint(initRow),
-            uint(initRow),
-            uint(initRow),
-            uint(initRow),
+func newBoard() *board {
+    board := &board{
+        xy: [boardSize]uint{
+            rowMask,
+            rowMask,
+            rowMask,
+            rowMask,
+            rowMask,
+            rowMask,
+            rowMask,
+            rowMask,
+            rowMask,
+            rowMask,
         },
-        yx: [BOARD_SIZE]uint{
-            uint(initRow),
-            uint(initRow),
-            uint(initRow),
-            uint(initRow),
-            uint(initRow),
-            uint(initRow),
-            uint(initRow),
-            uint(initRow),
-            uint(initRow),
-            uint(initRow),
+        yx: [boardSize]uint{
+            rowMask,
+            rowMask,
+            rowMask,
+            rowMask,
+            rowMask,
+            rowMask,
+            rowMask,
+            rowMask,
+            rowMask,
+            rowMask,
         },
     }
 
     return board
 }
 
-func NewProbabilities() *Probabilities {
-    probabilities := &Probabilities{
+func newProbabilities() *probabilities {
+    probabilities := &probabilities{
         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -68,7 +66,7 @@ func NewProbabilities() *Probabilities {
 }
 
 
-func (b *Board) String() string {
+func (b *board) String() string {
     var out string
     for _, i := range b.xy {
         out += fmt.Sprintf("%016b\n", i)
@@ -83,7 +81,7 @@ func (b *Board) String() string {
     return out
 }
 
-func (p *Probabilities) String() string {
+func (p *probabilities) String() string {
     var out string
     for _, x := range p {
         for _, y := range x {
@@ -95,15 +93,14 @@ func (p *Probabilities) String() string {
     return out
 }
 
-func (b *Board) Mark(location Location) {
-    markMask, _ := strconv.ParseUint(MARK_MASK, 2, 64)
-    mask := markMask>>(location.Column())
+func (b *board) mark(location Location) {
+    mask := pegMask>>(location.Column())
     b.xy[location.Row()] = b.xy[location.Row()] ^ uint(mask)
-    mask = markMask>>(location.Row())
+    mask = pegMask>>(location.Row())
     b.yx[location.Column()] = b.yx[location.Column()] ^ uint(mask)
 }
 
-func (b *Board) merge(b2 *Board) {
+func (b *board) merge(b2 *board) {
     for i := range b.xy {
         b.xy[i] = b.xy[i] & b2.xy[i]
     }

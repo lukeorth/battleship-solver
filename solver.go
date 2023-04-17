@@ -4,58 +4,57 @@ import (
 	"strconv"
 )
 
-
 const (
-    HUNT_MODE = "hunt"
-    TARGET_MODE = "target"
+    huntMode = "hunt"
+    targetMode = "target"
 )
 
 type Solver struct {
-    Probabilities *Probabilities
+    Probabilities *probabilities
     BestMove Location
     mode string
-    Fleet *Fleet
-    HuntBoard *Board
-    TargetBoard *Board
+    Fleet *fleet
+    HuntBoard *board
+    TargetBoard *board
 }
 
 func NewSolver() *Solver {
     solver := &Solver{
-        Probabilities: NewProbabilities(),
-        Fleet: BuildFleet(),
-        HuntBoard: NewBoard(),
-        TargetBoard: NewBoard(),
-        mode: HUNT_MODE,
+        Probabilities: newProbabilities(),
+        Fleet: buildFleet(),
+        HuntBoard: newBoard(),
+        TargetBoard: newBoard(),
+        mode: huntMode,
     }
     return solver
 }
 
 func (s *Solver) Hit(location Location) {
-    s.mode = TARGET_MODE
-    s.TargetBoard.Mark(location)
+    s.mode = targetMode
+    s.TargetBoard.mark(location)
 }
 
 func (s *Solver) Miss(location Location) {
-    s.mode = HUNT_MODE
-    s.HuntBoard.Mark(location)
+    s.mode = huntMode
+    s.HuntBoard.mark(location)
 }
 
 func (s *Solver) HitAndSunk(location Location, ship string) {
-    s.mode = HUNT_MODE
-    s.TargetBoard.Mark(location)
+    s.mode = huntMode
+    s.TargetBoard.mark(location)
     s.HuntBoard.merge(s.TargetBoard)
-    s.Fleet.SinkShip(ship)
+    s.Fleet.sinkShip(ship)
 }
 
 func (s *Solver) Evaluate() {
-    s.Probabilities = NewProbabilities()
+    s.Probabilities = newProbabilities()
     for _, ship := range s.Fleet.ships {
         // horizontal
         for x, row := range s.HuntBoard.xy {
-            for y := 0; y < BOARD_SIZE; y++ {
-                if row & (ship.Mask>>y) == ship.Mask>>y {
-                    for i := 0; i < ship.Length; i++ {
-                        if y + i < BOARD_SIZE {
+            for y := 0; y < boardSize; y++ {
+                if row & (ship.mask>>y) == ship.mask>>y {
+                    for i := 0; i < ship.length; i++ {
+                        if y + i < boardSize {
                             s.Probabilities[x][y+i] += 1
                         }
                     }
@@ -63,10 +62,10 @@ func (s *Solver) Evaluate() {
             }
         }
         for x, row := range s.HuntBoard.yx {
-            for y := 0; y < BOARD_SIZE; y++ {
-                if row & (ship.Mask>>y) == ship.Mask>>y {
-                    for i := 0; i < ship.Length; i++ {
-                        if y + i < BOARD_SIZE {
+            for y := 0; y < boardSize; y++ {
+                if row & (ship.mask>>y) == ship.mask>>y {
+                    for i := 0; i < ship.length; i++ {
+                        if y + i < boardSize {
                             s.Probabilities[y+i][x] += 1
                         }
                     }
@@ -77,36 +76,35 @@ func (s *Solver) Evaluate() {
 }
 
 func (s *Solver) EvaluateTarget() {
-    s.Probabilities = NewProbabilities()
+    s.Probabilities = newProbabilities()
     outOfBoundsMask, _ := strconv.ParseUint("0000000000111111", 2, 64)
-    markMask, _ := strconv.ParseUint(MARK_MASK, 2, 64)
     for _, ship := range s.Fleet.ships {
         for x, row := range s.TargetBoard.xy {
             row = row | uint(outOfBoundsMask)
-            for y := 0; y < BOARD_SIZE; y++ {
-                if row | (ship.Mask>>y) > row && s.HuntBoard.xy[x] & (ship.Mask>>y) == ship.Mask>>y {
-                    for i := 0; i < ship.Length; i++ {
-                        if y + i < BOARD_SIZE {
+            for y := 0; y < boardSize; y++ {
+                if row | (ship.mask>>y) > row && s.HuntBoard.xy[x] & (ship.mask>>y) == ship.mask>>y {
+                    for i := 0; i < ship.length; i++ {
+                        if y + i < boardSize {
                             s.Probabilities[x][y+i] += 1
                         }
                     }
                 }
-                if row & (uint(markMask)>>y) == 0 {
+                if row & (uint(pegMask)>>y) == 0 {
                     s.Probabilities[x][y] = 0
                 }
             }
         }
         for x, row := range s.TargetBoard.yx {
             row = row | uint(outOfBoundsMask)
-            for y := 0; y < BOARD_SIZE; y++ {
-                if row | (ship.Mask>>y) > row && s.HuntBoard.yx[x] & (ship.Mask>>y) == ship.Mask>>y {
-                    for i := 0; i < ship.Length; i++ {
-                        if y + i < BOARD_SIZE {
+            for y := 0; y < boardSize; y++ {
+                if row | (ship.mask>>y) > row && s.HuntBoard.yx[x] & (ship.mask>>y) == ship.mask>>y {
+                    for i := 0; i < ship.length; i++ {
+                        if y + i < boardSize {
                             s.Probabilities[y+i][x] += 1
                         }
                     }
                 }
-                if row & (uint(markMask)>>y) == 0 {
+                if row & (uint(pegMask)>>y) == 0 {
                     s.Probabilities[y][x] = 0
                 }
             }

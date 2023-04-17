@@ -1,68 +1,58 @@
 package battleshipsolver
 
-import (
-	"strconv"
-)
-
 const (
-    CARRIER_NAME = "carrier"
-    BATTLESHIP_NAME = "battleship"
-    SUBMARINE_NAME = "submarine"
-    CRUISER_NAME = "cruiser"
-    DESTROYER_NAME = "destroyer"
+    Carrier = "carrier"
+    Battleship = "battleship"
+    Submarine = "submarine"
+    Cruiser = "cruiser"
+    Destroyer = "destroyer"
 
-    CARRIER_MASK = "1111100000000000"
-    BATTLESHIP_MASK = "1111000000000000"
-    SUBMARINE_MASK = "1110000000000000"
-    CRUISER_MASK = "1110000000000000"
-    DESTROYER_MASK = "1100000000000000"
-
-    CARRIER_LENGTH = 5
-    BATTLESHIP_LENGTH = 4
-    SUBMARINE_LENGTH = 3
-    CRUISER_LENGTH = 3
-    DESTROYER_LENGTH = 2
+    carrierMask uint = 63488       // 1111100000000000
+    battleshipMask uint = 61440    //1111000000000000
+    submarineMask uint = 57344     // 1110000000000000
+    cruiserMask uint = 57344       // 1110000000000000
+    destroyerMask uint = 49152     // 1100000000000000
+    
+    carrierLength = 5
+    battleshipLength = 4
+    submarineLength = 3
+    cruiserLength = 3
+    destroyerLength = 2
 )
 
-type Ship struct {
-    Name string
-    Mask uint
-    Length int
+type ship struct {
+    name string
+    mask uint
+    length int
 }
 
-type Fleet struct {
-    ships map[string]*Ship
+type fleet struct {
+    ships map[string]*ship
 }
 
-func BuildFleet() *Fleet {
-    carrierMask, _ := strconv.ParseUint(CARRIER_MASK, 2, 64)
-    battleshipMask, _ := strconv.ParseUint(BATTLESHIP_MASK, 2, 64)
-    submarineMask, _ := strconv.ParseUint(SUBMARINE_MASK, 2, 64)
-    cruiserMask, _ := strconv.ParseUint(CRUISER_MASK, 2, 64)
-    destroyerMask, _ := strconv.ParseUint(DESTROYER_MASK, 2, 64)
-
-    ships := map[string]*Ship{
-        CARRIER_NAME: {CARRIER_NAME, uint(carrierMask), CARRIER_LENGTH},
-        BATTLESHIP_NAME: {BATTLESHIP_NAME, uint(battleshipMask), BATTLESHIP_LENGTH},
-        SUBMARINE_NAME: {SUBMARINE_NAME, uint(submarineMask), SUBMARINE_LENGTH},
-        CRUISER_NAME: {CRUISER_NAME, uint(cruiserMask), CRUISER_LENGTH},
-        DESTROYER_NAME: {DESTROYER_NAME, uint(destroyerMask), DESTROYER_LENGTH},
+func buildFleet() *fleet {
+    ships := map[string]*ship{
+        Carrier: {Carrier, carrierMask, carrierLength},
+        Battleship: {Battleship, battleshipMask, battleshipLength},
+        Submarine: {Submarine, submarineMask, submarineLength},
+        Cruiser: {Cruiser, cruiserMask, cruiserLength},
+        Destroyer: {Destroyer, destroyerMask, destroyerLength},
     }
 
-    return &Fleet{ships: ships}
+    return &fleet{ships: ships}
 }
 
-func (f *Fleet) GetBiggestShipSize() int {
+func (f *fleet) getBiggestShipSize() int {
     biggest := 0
     for _, s := range f.ships {
-        if s.Length > biggest {
-            biggest = s.Length
+        if s.length > biggest {
+            biggest = s.length
         }
     }
 
     return biggest
 }
 
-func (f *Fleet) SinkShip(ship string) {
+func (f *fleet) sinkShip(ship string) {
     delete(f.ships, ship)
 }
