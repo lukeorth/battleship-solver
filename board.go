@@ -6,8 +6,8 @@ import (
 
 const (
     boardSize = 10
-    rowMask uint = 65472   // 1111111111000000
-    pegMask uint = 32768  // 1000000000000000
+    rowMask uint = 65472    // 1111111111000000
+    pegMask uint = 32768    // 1000000000000000
 )
 
 type board struct {
@@ -85,7 +85,7 @@ func (p *probabilities) String() string {
     var out string
     for _, x := range p {
         for _, y := range x {
-            out += fmt.Sprintf("%d ", y)
+            out += fmt.Sprintf("%2d ", y)
         }
         out += "\n"
     }

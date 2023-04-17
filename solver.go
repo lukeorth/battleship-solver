@@ -1,9 +1,5 @@
 package battleshipsolver
 
-import (
-	"strconv"
-)
-
 const (
     huntMode = "hunt"
     targetMode = "target"
@@ -11,19 +7,18 @@ const (
 
 type Solver struct {
     Probabilities *probabilities
-    BestMove Location
     mode string
-    Fleet *fleet
-    HuntBoard *board
-    TargetBoard *board
+    fleet *fleet
+    huntBoard *board
+    targetBoard *board
 }
 
 func NewSolver() *Solver {
     solver := &Solver{
         Probabilities: newProbabilities(),
-        Fleet: buildFleet(),
-        HuntBoard: newBoard(),
-        TargetBoard: newBoard(),
+        fleet: buildFleet(),
+        huntBoard: newBoard(),
+        targetBoard: newBoard(),
         mode: huntMode,
     }
     return solver
@@ -31,26 +26,26 @@ func NewSolver() *Solver {
 
 func (s *Solver) Hit(location Location) {
     s.mode = targetMode
-    s.TargetBoard.mark(location)
+    s.targetBoard.mark(location)
 }
 
 func (s *Solver) Miss(location Location) {
     s.mode = huntMode
-    s.HuntBoard.mark(location)
+    s.huntBoard.mark(location)
 }
 
 func (s *Solver) HitAndSunk(location Location, ship string) {
     s.mode = huntMode
-    s.TargetBoard.mark(location)
-    s.HuntBoard.merge(s.TargetBoard)
-    s.Fleet.sinkShip(ship)
+    s.targetBoard.mark(location)
+    s.huntBoard.merge(s.targetBoard)
+    s.fleet.sinkShip(ship)
 }
 
 func (s *Solver) Evaluate() {
     s.Probabilities = newProbabilities()
-    for _, ship := range s.Fleet.ships {
+    for _, ship := range s.fleet.ships {
         // horizontal
-        for x, row := range s.HuntBoard.xy {
+        for x, row := range s.huntBoard.xy {
             for y := 0; y < boardSize; y++ {
                 if row & (ship.mask>>y) == ship.mask>>y {
                     for i := 0; i < ship.length; i++ {
@@ -61,7 +56,7 @@ func (s *Solver) Evaluate() {
                 }
             }
         }
-        for x, row := range s.HuntBoard.yx {
+        for x, row := range s.huntBoard.yx {
             for y := 0; y < boardSize; y++ {
                 if row & (ship.mask>>y) == ship.mask>>y {
                     for i := 0; i < ship.length; i++ {
@@ -77,12 +72,12 @@ func (s *Solver) Evaluate() {
 
 func (s *Solver) EvaluateTarget() {
     s.Probabilities = newProbabilities()
-    outOfBoundsMask, _ := strconv.ParseUint("0000000000111111", 2, 64)
-    for _, ship := range s.Fleet.ships {
-        for x, row := range s.TargetBoard.xy {
+    outOfBoundsMask := ^rowMask
+    for _, ship := range s.fleet.ships {
+        for x, row := range s.targetBoard.xy {
             row = row | uint(outOfBoundsMask)
             for y := 0; y < boardSize; y++ {
-                if row | (ship.mask>>y) > row && s.HuntBoard.xy[x] & (ship.mask>>y) == ship.mask>>y {
+                if row | (ship.mask>>y) > row && s.huntBoard.xy[x] & (ship.mask>>y) == ship.mask>>y {
                     for i := 0; i < ship.length; i++ {
                         if y + i < boardSize {
                             s.Probabilities[x][y+i] += 1
@@ -94,10 +89,10 @@ func (s *Solver) EvaluateTarget() {
                 }
             }
         }
-        for x, row := range s.TargetBoard.yx {
+        for x, row := range s.targetBoard.yx {
             row = row | uint(outOfBoundsMask)
             for y := 0; y < boardSize; y++ {
-                if row | (ship.mask>>y) > row && s.HuntBoard.yx[x] & (ship.mask>>y) == ship.mask>>y {
+                if row | (ship.mask>>y) > row && s.huntBoard.yx[x] & (ship.mask>>y) == ship.mask>>y {
                     for i := 0; i < ship.length; i++ {
                         if y + i < boardSize {
                             s.Probabilities[y+i][x] += 1
@@ -110,8 +105,4 @@ func (s *Solver) EvaluateTarget() {
             }
         }
     }
-}
-
-func bin(n uint) string {
-    return strconv.FormatUint(uint64(n), 2)
 }
