@@ -7,11 +7,11 @@ const (
     Cruiser = "cruiser"
     Destroyer = "destroyer"
 
-    carrierMask uint = 63488       // 1111100000000000
-    battleshipMask uint = 61440    //1111000000000000
-    submarineMask uint = 57344     // 1110000000000000
-    cruiserMask uint = 57344       // 1110000000000000
-    destroyerMask uint = 49152     // 1100000000000000
+    carrierMask uint = 992       // 1111100000
+    battleshipMask uint = 960    // 1111000000
+    submarineMask uint = 896     // 1110000000
+    cruiserMask uint = 896       // 1110000000
+    destroyerMask uint = 768     // 1100000000
     
     carrierLength = 5
     battleshipLength = 4
@@ -38,7 +38,6 @@ func buildFleet() *fleet {
         Cruiser: {Cruiser, cruiserMask, cruiserLength},
         Destroyer: {Destroyer, destroyerMask, destroyerLength},
     }
-
     return &fleet{ships: ships}
 }
 
@@ -49,7 +48,6 @@ func (f *fleet) getBiggestShipSize() int {
             biggest = s.length
         }
     }
-
     return biggest
 }
 

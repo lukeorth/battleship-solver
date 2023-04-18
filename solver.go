@@ -30,7 +30,6 @@ func (s *Solver) Hit(location Location) {
 }
 
 func (s *Solver) Miss(location Location) {
-    s.mode = huntMode
     s.huntBoard.mark(location)
 }
 
@@ -44,65 +43,86 @@ func (s *Solver) HitAndSunk(location Location, ship string) {
 func (s *Solver) Evaluate() {
     s.Probabilities = newProbabilities()
     for _, ship := range s.fleet.ships {
-        // horizontal
-        for x, row := range s.huntBoard.xy {
-            for y := 0; y < boardSize; y++ {
-                if row & (ship.mask>>y) == ship.mask>>y {
-                    for i := 0; i < ship.length; i++ {
-                        if y + i < boardSize {
-                            s.Probabilities[x][y+i] += 1
-                        }
-                    }
+        for row := range s.huntBoard {
+            for col := 0; col < boardSize; col++ {
+                if isInBounds(col, ship.length) {
+                    s.evaluateRow(row, col, ship)
                 }
-            }
-        }
-        for x, row := range s.huntBoard.yx {
-            for y := 0; y < boardSize; y++ {
-                if row & (ship.mask>>y) == ship.mask>>y {
-                    for i := 0; i < ship.length; i++ {
-                        if y + i < boardSize {
-                            s.Probabilities[y+i][x] += 1
-                        }
-                    }
+                if isInBounds(row, ship.length) {
+                    s.evaluateCol(row, col, ship)
                 }
             }
         }
     }
 }
 
+func (s *Solver) evaluateRow(row int, col int, ship *ship) {
+    if isPlayable(s.huntBoard[row], ship.mask>>col) {
+        for i := 0; i < ship.length; i++ {
+            s.Probabilities[row][col+i] += 1
+        }
+    }
+}
+
+func (s *Solver) evaluateCol(row int, col int, ship *ship) {
+    rowCopy := s.huntBoard[row]
+    for i := 0; i < ship.length; i++ {
+        rowCopy &= s.huntBoard[row+i]
+    }
+    if isPlayable(rowCopy, pegMask>>col) {
+        for i := 0; i < ship.length; i++ {
+            s.Probabilities[row+i][col] += 1
+        }
+    }
+}
+
 func (s *Solver) EvaluateTarget() {
     s.Probabilities = newProbabilities()
-    outOfBoundsMask := ^rowMask
     for _, ship := range s.fleet.ships {
-        for x, row := range s.targetBoard.xy {
-            row = row | uint(outOfBoundsMask)
-            for y := 0; y < boardSize; y++ {
-                if row | (ship.mask>>y) > row && s.huntBoard.xy[x] & (ship.mask>>y) == ship.mask>>y {
-                    for i := 0; i < ship.length; i++ {
-                        if y + i < boardSize {
-                            s.Probabilities[x][y+i] += 1
-                        }
-                    }
+        for row := range s.targetBoard {
+            for col := 0; col < boardSize; col++ {
+                if isInBounds(col, ship.length) {
+                    s.evaluateTargetRow(row, col, ship)
                 }
-                if row & (uint(pegMask)>>y) == 0 {
-                    s.Probabilities[x][y] = 0
+                if isInBounds(row, ship.length) {
+                    s.evaluateTargetCol(row, col, ship)
                 }
-            }
-        }
-        for x, row := range s.targetBoard.yx {
-            row = row | uint(outOfBoundsMask)
-            for y := 0; y < boardSize; y++ {
-                if row | (ship.mask>>y) > row && s.huntBoard.yx[x] & (ship.mask>>y) == ship.mask>>y {
-                    for i := 0; i < ship.length; i++ {
-                        if y + i < boardSize {
-                            s.Probabilities[y+i][x] += 1
-                        }
-                    }
-                }
-                if row & (uint(pegMask)>>y) == 0 {
-                    s.Probabilities[y][x] = 0
+                if s.targetBoard[row] & (uint(pegMask)>>col) == 0 {
+                    s.Probabilities[row][col] = 0
                 }
             }
         }
     }
+}
+
+func (s *Solver) evaluateTargetRow(row int, col int, ship *ship) {
+    if isHitIntersect(s.targetBoard[row], ship.mask>>col) && isPlayable(s.huntBoard[row], ship.mask>>col) {
+        for i := 0; i < ship.length; i++ {
+            s.Probabilities[row][col+i] += 1
+        }
+    }
+}
+
+func (s *Solver) evaluateTargetCol(row int, col int, ship *ship) {
+    rowCopy := s.targetBoard[row]
+    for i := 0; i < ship.length; i++ {
+        rowCopy &= s.targetBoard[row+i]
+    }
+    if isHitIntersect(rowCopy, pegMask>>col) && isPlayable(s.huntBoard[row], pegMask>>col) {
+        for i := 0; i < ship.length; i++ {
+            s.Probabilities[row+i][col] += 1
+        }
+    }
+}
+
+func isHitIntersect(rowMask uint, shipMask uint) bool {
+    return rowMask | shipMask > rowMask
+}
+
+func isPlayable(rowMask uint, shipMask uint) bool {
+    return rowMask & shipMask == shipMask
+}
+
+func isInBounds(position int, shipLen int) bool {
+    return position <= boardSize - shipLen
 }

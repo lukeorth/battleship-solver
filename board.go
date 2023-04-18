@@ -6,45 +6,27 @@ import (
 
 const (
     boardSize = 10
-    rowMask uint = 65472    // 1111111111000000
-    pegMask uint = 32768    // 1000000000000000
+    rowMask uint = 1023 // 1111111111
+    pegMask uint = 512  // 1000000000
 )
 
-type board struct {
-    xy [boardSize]uint
-    yx [boardSize]uint
-}
+type board [boardSize]uint
 
 type probabilities [boardSize][boardSize]int
 
 func newBoard() *board {
     board := &board{
-        xy: [boardSize]uint{
-            rowMask,
-            rowMask,
-            rowMask,
-            rowMask,
-            rowMask,
-            rowMask,
-            rowMask,
-            rowMask,
-            rowMask,
-            rowMask,
-        },
-        yx: [boardSize]uint{
-            rowMask,
-            rowMask,
-            rowMask,
-            rowMask,
-            rowMask,
-            rowMask,
-            rowMask,
-            rowMask,
-            rowMask,
-            rowMask,
-        },
+        rowMask,
+        rowMask,
+        rowMask,
+        rowMask,
+        rowMask,
+        rowMask,
+        rowMask,
+        rowMask,
+        rowMask,
+        rowMask,
     }
-
     return board
 }
 
@@ -68,16 +50,9 @@ func newProbabilities() *probabilities {
 
 func (b *board) String() string {
     var out string
-    for _, i := range b.xy {
+    for _, i := range b {
         out += fmt.Sprintf("%016b\n", i)
     }
-    /*
-    out += "\n" 
-    for _, i := range b.yx {
-        out += fmt.Sprintf("%016b\n", i)
-    }
-    */
-
     return out
 }
 
@@ -89,22 +64,16 @@ func (p *probabilities) String() string {
         }
         out += "\n"
     }
-
     return out
 }
 
 func (b *board) mark(location Location) {
     mask := pegMask>>(location.Column())
-    b.xy[location.Row()] = b.xy[location.Row()] ^ uint(mask)
-    mask = pegMask>>(location.Row())
-    b.yx[location.Column()] = b.yx[location.Column()] ^ uint(mask)
+    b[location.Row()] = b[location.Row()] ^ uint(mask)
 }
 
 func (b *board) merge(b2 *board) {
-    for i := range b.xy {
-        b.xy[i] = b.xy[i] & b2.xy[i]
-    }
-    for i := range b.yx {
-        b.yx[i] = b.yx[i] & b2.yx[i]
+    for i := range b {
+        b[i] = b[i] & b2[i]
     }
 }
