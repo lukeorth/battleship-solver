@@ -82,6 +82,6 @@ func (b *board) condenseRows(rowStart int, count int) uint {
 
 func (b *board) merge(b2 *board) {
     for i := range b {
-        b[i] = b[i] & b2[i]
+        b[i] &= b2[i]
     }
 }

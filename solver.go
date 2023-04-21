@@ -28,8 +28,10 @@ func (s *Solver) Miss(location Location) {
 
 func (s *Solver) HitAndSunk(location Location, ship string) {
     s.targetBoard.mark(location)
-    s.huntBoard.merge(s.targetBoard)
     s.fleet.sunk(ship)
+    if !s.isTargetMode() {
+        s.huntBoard.merge(s.targetBoard)
+    }
 }
 
 func (s *Solver) Evaluate() {
@@ -45,48 +47,41 @@ func (s *Solver) Evaluate() {
 }
 
 func (s *Solver) evaluateRow(row int, col int, ship *ship) {
-    if s.isPlayableRow(row, col, ship) {
-        for i := 0; i < ship.length; i++ {
-            s.Probabilities[row][col+i] += 1
+    switch s.isTargetMode() {
+    case true:
+        if s.isTargetableRow(row, col, ship) {
+            for i := 0; i < ship.length; i++ {
+                s.Probabilities[row][col+i] += 1
+            }
         }
-    }
-}
-
-func (s *Solver) evaluateCol(row int, col int, ship *ship) {
-    if s.isPlayableCol(row, col, ship) {
-        for i := 0; i < ship.length; i++ {
-            s.Probabilities[row+i][col] += 1
+        if isAlreadyMarked(s.targetBoard[row], pegMask>>col) {
+            s.Probabilities[row][col] = 0
         }
-    }
-}
-
-func (s *Solver) EvaluateTarget() {
-    s.Probabilities = newProbabilities()
-    for _, ship := range s.fleet.ships {
-        for row := range s.targetBoard {
-            for col := 0; col < boardSize; col++ {
-                s.evaluateTargetRow(row, col, ship)
-                s.evaluateTargetCol(row, col, ship)
-                if s.targetBoard[row] & (uint(pegMask)>>col) == 0 {
-                    s.Probabilities[row][col] = 0
-                }
+    case false:
+        if s.isPlayableRow(row, col, ship) {
+            for i := 0; i < ship.length; i++ {
+                s.Probabilities[row][col+i] += 1
             }
         }
     }
 }
 
-func (s *Solver) evaluateTargetRow(row int, col int, ship *ship) {
-    if s.isTargetableRow(row, col, ship) {
-        for i := 0; i < ship.length; i++ {
-            s.Probabilities[row][col+i] += 1
+func (s *Solver) evaluateCol(row int, col int, ship *ship) {
+    switch s.isTargetMode() {
+    case true:
+        if s.isTargetableCol(row, col, ship) {
+            for i := 0; i < ship.length; i++ {
+                s.Probabilities[row+i][col] += 1
+            }
         }
-    }
-}
-
-func (s *Solver) evaluateTargetCol(row int, col int, ship *ship) {
-    if s.isTargetableCol(row, col, ship) {
-        for i := 0; i < ship.length; i++ {
-            s.Probabilities[row+i][col] += 1
+        if isAlreadyMarked(s.targetBoard[row], pegMask>>col) {
+            s.Probabilities[row][col] = 0
+        }
+    case false:
+        if s.isPlayableCol(row, col, ship) {
+            for i := 0; i < ship.length; i++ {
+                s.Probabilities[row+i][col] += 1
+            }
         }
     }
 }
@@ -125,6 +120,10 @@ func (s *Solver) isPlayableCol(row int, col int, ship *ship) bool {
 
 func (s *Solver) isTargetMode() bool {
     return s.fleet.hitCount > 0
+}
+
+func isAlreadyMarked(rowMask uint, evalMask uint) bool {
+    return rowMask & evalMask == 0
 }
 
 func isTargetable(rowMask uint, evalMask uint) bool {

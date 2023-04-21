@@ -39,7 +39,7 @@ func run(s *battleshipsolver.Solver) {
         case "HIT":
             location := getLocation(in)
             s.Hit(location)
-            s.EvaluateTarget()
+            s.Evaluate()
         case "MISS":
             location := getLocation(in)
             s.Miss(location)
