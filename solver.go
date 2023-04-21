@@ -37,19 +37,15 @@ func (s *Solver) Evaluate() {
     for _, ship := range s.fleet.ships {
         for row := 0; row < boardSize; row++ {
             for col := 0; col < boardSize; col++ {
-                if isInBounds(col, ship.length) {
-                    s.evaluateRow(row, col, ship)
-                }
-                if isInBounds(row, ship.length) {
-                    s.evaluateCol(row, col, ship)
-                }
+                s.evaluateRow(row, col, ship)
+                s.evaluateCol(row, col, ship)
             }
         }
     }
 }
 
 func (s *Solver) evaluateRow(row int, col int, ship *ship) {
-    if isPlayable(s.huntBoard[row], ship.mask>>col) {
+    if s.isPlayableRow(row, col, ship) {
         for i := 0; i < ship.length; i++ {
             s.Probabilities[row][col+i] += 1
         }
@@ -57,9 +53,7 @@ func (s *Solver) evaluateRow(row int, col int, ship *ship) {
 }
 
 func (s *Solver) evaluateCol(row int, col int, ship *ship) {
-    rowCopy := s.huntBoard.condenseRows(row, ship.length)
-    
-    if isPlayable(rowCopy, pegMask>>col) {
+    if s.isPlayableCol(row, col, ship) {
         for i := 0; i < ship.length; i++ {
             s.Probabilities[row+i][col] += 1
         }
@@ -102,6 +96,22 @@ func (s *Solver) evaluateTargetCol(row int, col int, ship *ship) {
             s.Probabilities[row+i][col] += 1
         }
     }
+}
+
+func (s *Solver) isPlayableRow(row int, col int, ship *ship) bool {
+    if isInBounds(col, ship.length) {
+        return isPlayable(s.huntBoard[row], ship.mask>>col)
+    }
+    return false
+}
+
+func (s *Solver) isPlayableCol(row int, col int, ship *ship) bool {
+    if isInBounds(row, ship.length) {
+        rowCopy := s.huntBoard.condenseRows(row, ship.length)
+        
+        return isPlayable(rowCopy, pegMask>>col)
+    }
+    return false
 }
 
 func isHitIntersect(rowMask uint, evalMask uint) bool {
