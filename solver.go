@@ -1,13 +1,7 @@
 package battleshipsolver
 
-const (
-    huntMode = "hunt"
-    targetMode = "target"
-)
-
 type Solver struct {
     Probabilities *probabilities
-    mode string
     fleet *fleet
     huntBoard *board
     targetBoard *board
@@ -19,13 +13,11 @@ func NewSolver() *Solver {
         fleet: buildFleet(),
         huntBoard: newBoard(),
         targetBoard: newBoard(),
-        mode: huntMode,
     }
     return solver
 }
 
 func (s *Solver) Hit(location Location) {
-    s.mode = targetMode
     s.fleet.hit()
     s.targetBoard.mark(location)
 }
@@ -35,7 +27,6 @@ func (s *Solver) Miss(location Location) {
 }
 
 func (s *Solver) HitAndSunk(location Location, ship string) {
-    s.mode = huntMode
     s.targetBoard.mark(location)
     s.huntBoard.merge(s.targetBoard)
     s.fleet.sunk(ship)
@@ -113,12 +104,12 @@ func (s *Solver) evaluateTargetCol(row int, col int, ship *ship) {
     }
 }
 
-func isHitIntersect(rowMask uint, shipMask uint) bool {
-    return rowMask | shipMask > rowMask
+func isHitIntersect(rowMask uint, evalMask uint) bool {
+    return rowMask | evalMask > rowMask
 }
 
-func isPlayable(rowMask uint, shipMask uint) bool {
-    return rowMask & shipMask == shipMask
+func isPlayable(rowMask uint, evalMask uint) bool {
+    return rowMask & evalMask == evalMask
 }
 
 func isInBounds(position int, shipLen int) bool {
