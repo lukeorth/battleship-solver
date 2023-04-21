@@ -43,7 +43,7 @@ func (s *Solver) HitAndSunk(location Location, ship string) {
 func (s *Solver) Evaluate() {
     s.Probabilities = newProbabilities()
     for _, ship := range s.fleet.ships {
-        for row := range s.huntBoard {
+        for row := 0; row < boardSize; row++ {
             for col := 0; col < boardSize; col++ {
                 if isInBounds(col, ship.length) {
                     s.evaluateRow(row, col, ship)
@@ -108,7 +108,12 @@ func (s *Solver) evaluateTargetCol(row int, col int, ship *ship) {
     for i := 0; i < ship.length; i++ {
         rowCopy &= s.targetBoard[row+i]
     }
-    if isHitIntersect(rowCopy, pegMask>>col) && isPlayable(s.huntBoard[row], pegMask>>col) {
+    huntRowCopy := s.huntBoard[row]
+    for i := 0; i < ship.length; i++ {
+        huntRowCopy &= s.huntBoard[row+i]
+    }
+
+    if isHitIntersect(rowCopy, pegMask>>col) && isPlayable(huntRowCopy, pegMask>>col) {
         for i := 0; i < ship.length; i++ {
             s.Probabilities[row+i][col] += 1
         }
