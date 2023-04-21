@@ -123,6 +123,10 @@ func (s *Solver) isPlayableCol(row int, col int, ship *ship) bool {
     return false
 }
 
+func (s *Solver) isTargetMode() bool {
+    return s.fleet.hitCount > 0
+}
+
 func isTargetable(rowMask uint, evalMask uint) bool {
     return rowMask | evalMask > rowMask
 }
