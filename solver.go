@@ -26,6 +26,7 @@ func NewSolver() *Solver {
 
 func (s *Solver) Hit(location Location) {
     s.mode = targetMode
+    s.fleet.hit()
     s.targetBoard.mark(location)
 }
 
@@ -37,7 +38,7 @@ func (s *Solver) HitAndSunk(location Location, ship string) {
     s.mode = huntMode
     s.targetBoard.mark(location)
     s.huntBoard.merge(s.targetBoard)
-    s.fleet.sinkShip(ship)
+    s.fleet.sunk(ship)
 }
 
 func (s *Solver) Evaluate() {
@@ -65,10 +66,8 @@ func (s *Solver) evaluateRow(row int, col int, ship *ship) {
 }
 
 func (s *Solver) evaluateCol(row int, col int, ship *ship) {
-    rowCopy := s.huntBoard[row]
-    for i := 0; i < ship.length; i++ {
-        rowCopy &= s.huntBoard[row+i]
-    }
+    rowCopy := s.huntBoard.condenseRows(row, ship.length)
+    
     if isPlayable(rowCopy, pegMask>>col) {
         for i := 0; i < ship.length; i++ {
             s.Probabilities[row+i][col] += 1
@@ -104,16 +103,10 @@ func (s *Solver) evaluateTargetRow(row int, col int, ship *ship) {
 }
 
 func (s *Solver) evaluateTargetCol(row int, col int, ship *ship) {
-    rowCopy := s.targetBoard[row]
-    for i := 0; i < ship.length; i++ {
-        rowCopy &= s.targetBoard[row+i]
-    }
-    huntRowCopy := s.huntBoard[row]
-    for i := 0; i < ship.length; i++ {
-        huntRowCopy &= s.huntBoard[row+i]
-    }
+    targetRow := s.targetBoard.condenseRows(row, ship.length)
+    huntRow := s.huntBoard.condenseRows(row, ship.length)
 
-    if isHitIntersect(rowCopy, pegMask>>col) && isPlayable(huntRowCopy, pegMask>>col) {
+    if isHitIntersect(targetRow, pegMask>>col) && isPlayable(huntRow, pegMask>>col) {
         for i := 0; i < ship.length; i++ {
             s.Probabilities[row+i][col] += 1
         }

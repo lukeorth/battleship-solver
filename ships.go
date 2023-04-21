@@ -28,6 +28,7 @@ type ship struct {
 
 type fleet struct {
     ships map[string]*ship
+    hitCount int
 }
 
 func buildFleet() *fleet {
@@ -38,7 +39,10 @@ func buildFleet() *fleet {
         Cruiser: {Cruiser, cruiserMask, cruiserLength},
         Destroyer: {Destroyer, destroyerMask, destroyerLength},
     }
-    return &fleet{ships: ships}
+    return &fleet{
+        ships: ships,
+        hitCount: 0,
+    }
 }
 
 func (f *fleet) getBiggestShipSize() int {
@@ -51,6 +55,12 @@ func (f *fleet) getBiggestShipSize() int {
     return biggest
 }
 
-func (f *fleet) sinkShip(ship string) {
-    delete(f.ships, ship)
+func (f *fleet) sunk(shipName string) {
+    s := f.ships[shipName]
+    f.hitCount -= s.length
+    delete(f.ships, shipName)
+}
+
+func (f *fleet) hit() {
+    f.hitCount += 1
 }
