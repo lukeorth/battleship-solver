@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -9,9 +10,31 @@ import (
 )
 
 func main() {
-    solver := battleshipsolver.NewSolver()
+    var boardBlob = []byte(`{"board": [
+    [1, 1, 1, 1, 1, 1, 1, 1, 0, 1],
+    [1, 1, 1, 1, 3, 1, 1, 1, 0, 1],
+    [1, 1, 1, 1, 2, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 2, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 2, 0, 1, 1, 1, 1],
+    [1, 1, 1, 1, 0, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    ],
+    "fleet": ["carrier","battleship","cruiser","submarine","destroyer"]}`)
+
+
+    var solver battleshipsolver.Solver
+    if err := json.Unmarshal(boardBlob, &solver); err != nil {
+        fmt.Printf("ERROR: %s", err)
+    }
     solver.Evaluate()
-    run(solver)
+    fmt.Println(solver.Probabilities.String())
+    //run(solver)
+
+    //solver.TestBoardUnmarshal(boardBlob)
+
     /*
     solver.Miss("F7")
     solver.Hit("F6")

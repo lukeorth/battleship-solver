@@ -1,10 +1,72 @@
 package battleshipsolver
 
+import (
+	"encoding/json"
+)
+
 type Solver struct {
     Probabilities *probabilities
     fleet *fleet
     huntBoard *board
     targetBoard *board
+}
+
+type SolverJSON struct {
+    Board [boardSize][boardSize]int `json:"board"`
+    Fleet []string `json:"fleet"`
+}
+
+func (s *Solver) UnmarshalJSON(data []byte) error {
+    solver := &SolverJSON{}
+
+    if err := json.Unmarshal(data, &solver); err != nil {
+        return err
+    }
+
+    tempHuntBoard := &board{}
+    tempTargetBoard := &board{}
+    tempHitCount := 0
+
+    for row := 0; row < boardSize; row++ {
+        huntRow := rowMask
+        targetRow := rowMask
+        for col := 0; col < boardSize; col++ {
+            switch solver.Board[row][col] {
+            case 0, 3:
+                huntRow = huntRow ^ (pegMask>>col)
+            case 2:
+                tempHitCount++
+                targetRow = targetRow ^ (pegMask>>col)
+            }
+        }
+        tempHuntBoard[row] = huntRow
+        tempTargetBoard[row] = targetRow
+    }
+    s.huntBoard = tempHuntBoard
+    s.targetBoard = tempTargetBoard
+
+    tempShips := make(map[string]*ship)
+    for _, tempShip := range solver.Fleet {
+        switch tempShip {
+        case Carrier:
+            tempShips[Carrier] = &ship{Carrier, carrierMask, carrierLength}
+        case Battleship:
+            tempShips[Battleship] = &ship{Battleship, battleshipMask, battleshipLength}
+        case Submarine:
+            tempShips[Submarine] = &ship{Submarine, submarineMask, submarineLength}
+        case Cruiser:
+            tempShips[Cruiser] = &ship{Cruiser, cruiserMask, cruiserLength}
+        case Destroyer:
+            tempShips[Destroyer] = &ship{Destroyer, destroyerMask, destroyerLength}
+        }
+    }
+
+    s.fleet = &fleet{
+        ships: tempShips,
+        hitCount: tempHitCount,
+    }
+
+    return nil
 }
 
 func NewSolver() *Solver {

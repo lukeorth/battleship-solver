@@ -47,11 +47,10 @@ func newProbabilities() *probabilities {
     return probabilities
 }
 
-
 func (b *board) String() string {
     var out string
     for _, i := range b {
-        out += fmt.Sprintf("%016b\n", i)
+        out += fmt.Sprintf("%010b\n", i)
     }
     return out
 }
