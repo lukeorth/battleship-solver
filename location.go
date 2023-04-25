@@ -12,14 +12,44 @@ import (
 	"strings"
 )
 
-type Location string
+type (
+    Position string
+    cell []int
+)
 
-func (l Location) Row() int {
-	row := strings.Index("ABCDEFGHIJKLMNOPQRSTUVWXYZ", string(l[0:1]))
-	return row
+type Location struct {
+    Position Position
+    Row int
+    Col int
 }
 
-func (l Location) Column() int {
-	column, _ := strconv.Atoi(string(l[1:]))
-	return (column - 1)
+type Locator interface {
+    Locate() Location
+}
+
+func (c Position) Locate() Location {
+	row := strings.Index("ABCDEFGHIJKLMNOPQRSTUVWXYZ", string(c[0:1]))
+	col, _ := strconv.Atoi(string(c[1:]))
+    return Location{
+        Position: c,
+        Row: row,
+        Col: col,
+    }
+}
+
+func (c cell) Locate() Location {
+    const abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    row := c[0]
+    col := c[1]
+    Position := Position(abc[row:row+1] + strconv.Itoa(col+1))
+    
+    return Location{
+        Position: Position,
+        Row: row,
+        Col: col,
+    }
+}
+
+func Cell (row int, col int) cell {
+    return cell([]int{row, col})
 }

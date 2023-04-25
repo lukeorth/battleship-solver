@@ -66,9 +66,10 @@ func (p *probabilities) String() string {
     return out
 }
 
-func (b *board) mark(location Location) {
-    mask := pegMask>>(location.Column())
-    b[location.Row()] = b[location.Row()] ^ uint(mask)
+func (b *board) mark(location Locator) {
+    l := location.Locate()
+    mask := pegMask>>(l.Col)
+    b[l.Row] = b[l.Row] ^ uint(mask)
 }
 
 func (b *board) condenseRows(rowStart int, count int) uint {

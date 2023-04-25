@@ -6,31 +6,38 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/lukeorth/battleship-solver"
+	bs "github.com/lukeorth/battleship-solver"
 )
 
 func main() {
     var boardBlob = []byte(`{"board": [
-    [1, 1, 1, 1, 1, 1, 1, 1, 0, 1],
-    [1, 1, 1, 1, 3, 1, 1, 1, 0, 1],
-    [1, 1, 1, 1, 2, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 2, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 2, 0, 1, 1, 1, 1],
-    [1, 1, 1, 1, 0, 1, 1, 1, 1, 1],
+    [2, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 2, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     ],
     "fleet": ["carrier","battleship","cruiser","submarine","destroyer"]}`)
 
 
-    var solver battleshipsolver.Solver
+    var solver bs.Solver
     if err := json.Unmarshal(boardBlob, &solver); err != nil {
         fmt.Printf("ERROR: %s", err)
     }
     solver.Evaluate()
     fmt.Println(solver.Probabilities.String())
+
+    b, err := json.Marshal(&solver)
+    if err != nil {
+        fmt.Printf("ERROR: %s", err)
+    }
+    os.Stdout.Write(b)
+    fmt.Println()
     //run(solver)
 
     //solver.TestBoardUnmarshal(boardBlob)
@@ -52,7 +59,7 @@ func main() {
     */
 }
 
-func run(s *battleshipsolver.Solver) {
+func run(s *bs.Solver) {
     in := bufio.NewScanner(os.Stdin)
 
     for {
@@ -61,16 +68,16 @@ func run(s *battleshipsolver.Solver) {
         switch move {
         case "HIT":
             location := getLocation(in)
-            s.Hit(location)
+            s.Hit(bs.Position(location))
             s.Evaluate()
         case "MISS":
             location := getLocation(in)
-            s.Miss(location)
+            s.Miss(bs.Position(location))
             s.Evaluate()
         case "SUNK":
             location := getLocation(in)
             ship := getShip(in)
-            s.HitAndSunk(location, ship)
+            s.HitAndSunk(bs.Position(location), ship)
             s.Evaluate()
         default:
             break
@@ -85,11 +92,10 @@ func getMoveType(s *bufio.Scanner) string {
     return move
 }
 
-func getLocation(s *bufio.Scanner) battleshipsolver.Location {
+func getLocation(s *bufio.Scanner) string {
     fmt.Printf("Location: ")
     s.Scan()
-    location := s.Text()
-    return battleshipsolver.Location(location)
+    return s.Text()
 }
 
 func getShip(s *bufio.Scanner) string {

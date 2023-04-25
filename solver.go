@@ -6,14 +6,30 @@ import (
 
 type Solver struct {
     Probabilities *probabilities
+    BestCell Location 
     fleet *fleet
     huntBoard *board
     targetBoard *board
 }
 
 type SolverJSON struct {
-    Board [boardSize][boardSize]int `json:"board"`
     Fleet []string `json:"fleet"`
+    Board [boardSize][boardSize]int `json:"board"`
+}
+
+func (s *Solver) MarshalJSON() ([]byte, error) {
+    bestCell := struct{
+        Coordinates []int `json:"coordinates"`
+        Position Position `json:"position"`
+    }{
+        []int{s.BestCell.Row, s.BestCell.Col},
+        s.BestCell.Position,
+    }
+
+    return json.Marshal(map[string]interface{}{
+        "probabilities": s.Probabilities,
+        "bestCell": bestCell,
+    })
 }
 
 func (s *Solver) UnmarshalJSON(data []byte) error {
@@ -73,16 +89,16 @@ func NewSolver() *Solver {
     return solver
 }
 
-func (s *Solver) Hit(location Location) {
+func (s *Solver) Hit(location Locator) {
     s.fleet.hit()
     s.targetBoard.mark(location)
 }
 
-func (s *Solver) Miss(location Location) {
+func (s *Solver) Miss(location Locator) {
     s.huntBoard.mark(location)
 }
 
-func (s *Solver) HitAndSunk(location Location, ship string) {
+func (s *Solver) HitAndSunk(location Locator, ship string) {
     s.targetBoard.mark(location)
     s.fleet.sunk(ship)
     if !s.isTargetMode() {
@@ -100,6 +116,7 @@ func (s *Solver) Evaluate() {
             }
         }
     }
+    s.updateBestCell()
 }
 
 func (s *Solver) evaluateRow(row int, col int, ship *ship) {
@@ -176,6 +193,17 @@ func (s *Solver) isPlayableCol(row int, col int, ship *ship) bool {
 
 func (s *Solver) isTargetMode() bool {
     return s.fleet.hitCount > 0
+}
+
+func (s *Solver) updateBestCell() {
+    for row := 0; row < boardSize; row++ {
+        for col := 0; col < boardSize; col++ {
+            bestCell := s.Probabilities[s.BestCell.Row][s.BestCell.Col]
+            if s.Probabilities[row][col] > bestCell {
+                s.BestCell = Cell(row, col).Locate()
+            }
+        }
+    }
 }
 
 func isAlreadyMarked(rowMask uint, evalMask uint) bool {
