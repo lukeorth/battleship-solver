@@ -17,53 +17,47 @@ type SolverJSON struct {
 }
 
 func (s *Solver) UnmarshalJSON(data []byte) error {
-    solver := &SolverJSON{}
+    tempSolver := &SolverJSON{}
 
-    if err := json.Unmarshal(data, &solver); err != nil {
+    if err := json.Unmarshal(data, &tempSolver); err != nil {
         return err
     }
 
-    tempHuntBoard := &board{}
-    tempTargetBoard := &board{}
-    tempHitCount := 0
+    s.huntBoard = &board{}
+    s.targetBoard = &board{}
+    s.fleet = &fleet{
+        ships: make(map[string]*ship),
+    }
 
     for row := 0; row < boardSize; row++ {
         huntRow := rowMask
         targetRow := rowMask
         for col := 0; col < boardSize; col++ {
-            switch solver.Board[row][col] {
+            switch tempSolver.Board[row][col] {
             case 0, 3:
                 huntRow = huntRow ^ (pegMask>>col)
             case 2:
-                tempHitCount++
+                s.fleet.hitCount++
                 targetRow = targetRow ^ (pegMask>>col)
             }
         }
-        tempHuntBoard[row] = huntRow
-        tempTargetBoard[row] = targetRow
+        s.huntBoard[row] = huntRow
+        s.targetBoard[row] = targetRow
     }
-    s.huntBoard = tempHuntBoard
-    s.targetBoard = tempTargetBoard
 
-    tempShips := make(map[string]*ship)
-    for _, tempShip := range solver.Fleet {
+    for _, tempShip := range tempSolver.Fleet {
         switch tempShip {
         case Carrier:
-            tempShips[Carrier] = &ship{Carrier, carrierMask, carrierLength}
+            s.fleet.ships[Carrier] = &ship{Carrier, carrierMask, carrierLength}
         case Battleship:
-            tempShips[Battleship] = &ship{Battleship, battleshipMask, battleshipLength}
+            s.fleet.ships[Battleship] = &ship{Battleship, battleshipMask, battleshipLength}
         case Submarine:
-            tempShips[Submarine] = &ship{Submarine, submarineMask, submarineLength}
+            s.fleet.ships[Submarine] = &ship{Submarine, submarineMask, submarineLength}
         case Cruiser:
-            tempShips[Cruiser] = &ship{Cruiser, cruiserMask, cruiserLength}
+            s.fleet.ships[Cruiser] = &ship{Cruiser, cruiserMask, cruiserLength}
         case Destroyer:
-            tempShips[Destroyer] = &ship{Destroyer, destroyerMask, destroyerLength}
+            s.fleet.ships[Destroyer] = &ship{Destroyer, destroyerMask, destroyerLength}
         }
-    }
-
-    s.fleet = &fleet{
-        ships: tempShips,
-        hitCount: tempHitCount,
     }
 
     return nil
