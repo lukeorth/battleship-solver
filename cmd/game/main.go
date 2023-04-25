@@ -32,7 +32,7 @@ func main() {
     solver.Evaluate()
     fmt.Println(solver.Probabilities.String())
 
-    b, err := json.Marshal(&solver)
+    b, err := json.Marshal(solver)
     if err != nil {
         fmt.Printf("ERROR: %s", err)
     }

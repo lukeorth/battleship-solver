@@ -17,7 +17,7 @@ type SolverJSON struct {
     Board [boardSize][boardSize]int `json:"board"`
 }
 
-func (s *Solver) MarshalJSON() ([]byte, error) {
+func (s Solver) MarshalJSON() ([]byte, error) {
     bestCell := struct{
         Coordinates []int `json:"coordinates"`
         Position Position `json:"position"`
