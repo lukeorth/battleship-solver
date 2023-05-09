@@ -72,14 +72,6 @@ func (b *board) mark(location Locator) {
     b[l.Row] = b[l.Row] ^ uint(mask)
 }
 
-func (b *board) condenseRows(rowStart int, count int) uint {
-    rowCopy := b[rowStart]
-    for i := 0; i < count; i++ {
-        rowCopy &= b[rowStart+i]
-    }
-    return rowCopy
-}
-
 func (b *board) merge(b2 *board) {
     for i := range b {
         b[i] &= b2[i]

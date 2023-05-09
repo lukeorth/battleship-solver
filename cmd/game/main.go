@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"os"
 
@@ -10,6 +9,7 @@ import (
 )
 
 func main() {
+    /*
     var boardBlob = []byte(`{"board": [
     [2, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -23,9 +23,11 @@ func main() {
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     ],
     "fleet": ["carrier","battleship","cruiser","submarine","destroyer"]}`)
+    */
 
-
-    var solver bs.Solver
+    //var solver bs.Solver
+    solver := bs.NewSolver();
+    /*
     if err := json.Unmarshal(boardBlob, &solver); err != nil {
         fmt.Printf("ERROR: %s", err)
     }
@@ -38,20 +40,21 @@ func main() {
     }
     os.Stdout.Write(b)
     fmt.Println()
-    //run(solver)
+    */
+    run(solver)
 
     //solver.TestBoardUnmarshal(boardBlob)
-
     /*
-    solver.Miss("F7")
-    solver.Hit("F6")
-    solver.Miss("G6")
+    var solver bs.Solver
+    solver.Miss(bs.Cell(5, 7))
+    solver.Hit(bs.Cell(5, 6))
+    solver.Miss(bs.Cell(6, 6))
     //solver.Miss("A4")
-    solver.Hit("D6")
-    solver.HitAndSunk("E6", battleshipsolver.Destroyer)
-    solver.Hit("A6")
+    solver.Hit(bs.Cell(3, 6))
+    solver.HitAndSunk(bs.Cell(4, 6), bs.Destroyer)
+    solver.Hit(bs.Cell(0, 6))
     //solver.EvaluateTarget()
-    solver.Miss("A7")
+    solver.Miss(bs.Cell(0, 7))
     solver.Evaluate()
 
     //fmt.Println(solver.HuntBoard.String())
