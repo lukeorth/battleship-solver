@@ -33,7 +33,9 @@ func NewSolver() *Solver {
 func (s *Solver) Hit(location Locator) {
     // remove
     // fmt.Println(s.isSinkableRow(location.Locate().Row, location.Locate().Col, s.fleet.ships[Battleship]))
-    fmt.Println(s.isSinkableCol(location.Locate().Row, location.Locate().Col, s.fleet.ships[Battleship]))
+    // fmt.Println(s.isSinkableCol(location.Locate().Row, location.Locate().Col, s.fleet.ships[Battleship]))
+    err := s.sinkablePositions(location.Locate().Row, location.Locate().Col, s.fleet.ships[Battleship])
+    fmt.Println(pos)
     s.fleet.hit()
     s.targetBoard.mark(location)
 }
@@ -106,42 +108,32 @@ func (s *Solver) evaluateCol(row int, col int, ship *ship) {
     }
 }
 
-func (s *Solver) isSinkableRow(row int, col int, ship *ship) bool {
-    hitRow := (^s.targetBoard[row] & rowMask) | (pegMask>>col)
+func (s *Solver) sinkablePositions(row int, col int, ship *ship) error {
+    rowPositions := make([][]int, 0, ship.length)
+    colPositions := make([][]int, 0, ship.length)
+    rowShift := row - ship.length + 1
     colShift := col - ship.length + 1
+    hitRow := (^s.targetBoard[row]) | (pegMask>>col)
+
     for i := 0; i < ship.length; i++ {
         if s.isPlayableRow(row, colShift + i, ship) {
             if hitRow == ship.mask>>(colShift + i) | hitRow {
-                return true
+                rowPositions = append(rowPositions, []int{row, colShift + i})
             }
         }
-    }
-    return false
-}
-
-func (s *Solver) isSinkableCol(row int, col int, ship *ship) bool {
-    rowShift := row - ship.length + 1
-    if rowShift < 0 {
-        rowShift = 0
-    }
-    for i := 0; i < ship.length; i++ {
         if s.isPlayableCol(rowShift + i, col, ship) {
             var rowCopy uint
             for j := 0; j < ship.length; j++ {
-                fmt.Println(rowShift + i + j)
-                if rowShift + i + j == row {
-                    continue
+                if rowShift + i + j != row {
+                    rowCopy |= s.targetBoard[rowShift + i + j]
                 }
-                fmt.Printf("%010b\n", s.targetBoard[rowShift + i + j])
-                rowCopy |= s.targetBoard[rowShift + i + j]
             }
-            fmt.Printf("%010b\n", rowCopy & (pegMask>>col))
-            if rowCopy & (pegMask>>col) != (pegMask>>col) {
-                return true
+            if rowCopy & (pegMask>>col) != pegMask>>col {
+                colPositions = append(colPositions, []int{rowShift + i, col})
             }
         }
     }
-    return false
+    return nil
 }
 
 func (s *Solver) isTargetableRow(row int, col int, ship *ship) bool {
