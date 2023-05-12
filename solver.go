@@ -108,6 +108,17 @@ func (s *Solver) evaluateCol(row int, col int, ship *ship) {
     }
 }
 
+func (s *Solver) getSinkableRows(row int, col int, ship *ship) (bool, error) {
+    positions := make([][]int, 0, ship.length)
+    colShift := col - ship.length + 1
+    hitRow := (^s.targetBoard[row]) | (pegMask>>col)
+    for i := 0; i < ship.length; i++ {
+        if s.isPlayableRow(row, colShift + i, ship) {
+            return hitRow == ship.mask>>(colShift + i) | hitRow
+        }
+    }
+}
+
 func (s *Solver) sinkablePositions(row int, col int, ship *ship) error {
     rowPositions := make([][]int, 0, ship.length)
     colPositions := make([][]int, 0, ship.length)
