@@ -24,7 +24,7 @@ type ship struct {
     name string
     mask uint
     length int
-    sunk bool
+    sunkAt Locator
 }
 
 type fleet struct {
@@ -34,11 +34,11 @@ type fleet struct {
 
 func buildFleet() *fleet {
     ships := map[string]*ship{
-        Carrier: {Carrier, carrierMask, carrierLength, false},
-        Battleship: {Battleship, battleshipMask, battleshipLength, false},
-        Submarine: {Submarine, submarineMask, submarineLength, false},
-        Cruiser: {Cruiser, cruiserMask, cruiserLength, false},
-        Destroyer: {Destroyer, destroyerMask, destroyerLength, false},
+        Carrier: {Carrier, carrierMask, carrierLength, nil},
+        Battleship: {Battleship, battleshipMask, battleshipLength, nil},
+        Submarine: {Submarine, submarineMask, submarineLength, nil},
+        Cruiser: {Cruiser, cruiserMask, cruiserLength, nil},
+        Destroyer: {Destroyer, destroyerMask, destroyerLength, nil},
     }
     return &fleet{
         ships: ships,
@@ -56,10 +56,10 @@ func (f *fleet) getBiggestShipSize() int {
     return biggest
 }
 
-func (f *fleet) sink(shipName string) {
+func (f *fleet) sink(position Locator, shipName string) {
     ship := f.ships[shipName]
     f.hitCount -= ship.length
-    ship.sunk = true
+    ship.sunkAt = position
 }
 
 func (f *fleet) remove(shipName string) {
@@ -73,18 +73,18 @@ func (f *fleet) hit() {
 func (f *fleet) floatingShips() map[string]*ship {
     ships := make(map[string]*ship)
     for _, ship := range f.ships {
-        if !ship.sunk {
+        if ship.sunkAt == nil {
             ships[ship.name] = ship
         }
     }
     return ships
 }
 
-func (f *fleet) sunkShips() map[string]*ship {
-    ships := make(map[string]*ship)
+func (f *fleet) sunkShips() []*ship {
+    ships := make([]*ship, 0, 5)
     for _, ship := range f.ships {
-        if ship.sunk {
-            ships[ship.name] = ship
+        if ship.sunkAt != nil {
+            ships = append(ships, ship)
         }
     }
     return ships
