@@ -1,5 +1,7 @@
 package battleshipsolver
 
+import "fmt"
+
 const (
     Carrier = "carrier"
     Battleship = "battleship"
@@ -57,9 +59,13 @@ func (f *fleet) getBiggestShipSize() int {
 }
 
 func (f *fleet) sink(position Locator, shipName string) {
+    fmt.Println("INSIDE OF SHIP SINK")
     ship := f.ships[shipName]
+    fmt.Println("GOT SHIP")
     f.hitCount -= ship.length
+    fmt.Println("DECREASED HIT COUNT")
     ship.sunkAt = position
+    fmt.Println("SET SHIP SUNK AT")
 }
 
 func (f *fleet) remove(shipName string) {

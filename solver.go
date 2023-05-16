@@ -3,6 +3,7 @@ package battleshipsolver
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 )
 
 type Solver struct {
@@ -274,8 +275,11 @@ func (s *Solver) UnmarshalJSON(data []byte) error {
                 s.fleet.hitCount++
                 s.fleet.sink(Cell(row, col), Battleship)
             case 3:
+                fmt.Println("BEFORE HIT COUNT INCREASE")                
                 s.fleet.hitCount++
+                fmt.Println("AFTER HIT COUNT INCREASE")                
                 s.fleet.sink(Cell(row, col), Submarine)
+                fmt.Println("AFTER SHIP SINK")                
             case 4:
                 s.fleet.hitCount++
                 s.fleet.sink(Cell(row, col), Cruiser)
