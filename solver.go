@@ -3,6 +3,7 @@ package battleshipsolver
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 )
 
 type Solver struct {
@@ -242,7 +243,27 @@ func (s *Solver) UnmarshalJSON(data []byte) error {
     s.huntBoard = &board{}
     s.targetBoard = &board{}
     s.fleet = buildFleet()
-    
+    /*
+    s.fleet = &fleet{
+        ships: make(map[string]*ship),
+    }
+
+    for _, tempShip := range tempSolver.Fleet {
+        switch tempShip {
+        case Carrier:
+            s.fleet.ships[Carrier] = &ship{Carrier, carrierMask, carrierLength, nil}
+        case Battleship:
+            s.fleet.ships[Battleship] = &ship{Battleship, battleshipMask, battleshipLength, nil}
+        case Submarine:
+            s.fleet.ships[Submarine] = &ship{Submarine, submarineMask, submarineLength, nil}
+        case Cruiser:
+            s.fleet.ships[Cruiser] = &ship{Cruiser, cruiserMask, cruiserLength, nil}
+        case Destroyer:
+            s.fleet.ships[Destroyer] = &ship{Destroyer, destroyerMask, destroyerLength, nil}
+        }
+    }
+    */
+
     for row := 0; row < boardSize; row++ {
         huntRow := rowMask
         targetRow := rowMask
@@ -251,33 +272,30 @@ func (s *Solver) UnmarshalJSON(data []byte) error {
             case 0:
                 huntRow = huntRow ^ (pegMask>>col)
             case 1:
+                s.fleet.hitCount++
                 s.fleet.sink(Cell(row, col), Carrier)
             case 2:
+                s.fleet.hitCount++
                 s.fleet.sink(Cell(row, col), Battleship)
             case 3:
+                fmt.Println("BEFORE HIT COUNT INCREASE")                
+                s.fleet.hitCount++
+                fmt.Println("AFTER HIT COUNT INCREASE")                
                 s.fleet.sink(Cell(row, col), Submarine)
+                fmt.Println("AFTER SHIP SINK")                
             case 4:
+                s.fleet.hitCount++
                 s.fleet.sink(Cell(row, col), Cruiser)
             case 5:
+                s.fleet.hitCount++
                 s.fleet.sink(Cell(row, col), Destroyer)
             case 6:
+                s.fleet.hitCount++
                 targetRow = targetRow ^ (pegMask>>col)
             }
         }
         s.huntBoard[row] = huntRow
         s.targetBoard[row] = targetRow
-    }
-
-    for _, ship := range s.fleet.ships {
-        remove := true
-        for _, tempShip := range tempSolver.Fleet {
-            if ship.name == tempShip {
-                remove = false
-            }
-        }
-        if remove {
-            s.fleet.remove(ship.name)
-        }
     }
 
     return nil
