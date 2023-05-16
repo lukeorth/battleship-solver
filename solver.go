@@ -242,6 +242,8 @@ func (s *Solver) UnmarshalJSON(data []byte) error {
 
     s.huntBoard = &board{}
     s.targetBoard = &board{}
+    s.fleet = buildFleet()
+    /*
     s.fleet = &fleet{
         ships: make(map[string]*ship),
     }
@@ -260,6 +262,7 @@ func (s *Solver) UnmarshalJSON(data []byte) error {
             s.fleet.ships[Destroyer] = &ship{Destroyer, destroyerMask, destroyerLength, nil}
         }
     }
+    */
 
     for row := 0; row < boardSize; row++ {
         huntRow := rowMask
