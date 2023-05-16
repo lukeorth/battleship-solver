@@ -245,6 +245,21 @@ func (s *Solver) UnmarshalJSON(data []byte) error {
         ships: make(map[string]*ship),
     }
 
+    for _, tempShip := range tempSolver.Fleet {
+        switch tempShip {
+        case Carrier:
+            s.fleet.ships[Carrier] = &ship{Carrier, carrierMask, carrierLength, nil}
+        case Battleship:
+            s.fleet.ships[Battleship] = &ship{Battleship, battleshipMask, battleshipLength, nil}
+        case Submarine:
+            s.fleet.ships[Submarine] = &ship{Submarine, submarineMask, submarineLength, nil}
+        case Cruiser:
+            s.fleet.ships[Cruiser] = &ship{Cruiser, cruiserMask, cruiserLength, nil}
+        case Destroyer:
+            s.fleet.ships[Destroyer] = &ship{Destroyer, destroyerMask, destroyerLength, nil}
+        }
+    }
+
     for row := 0; row < boardSize; row++ {
         huntRow := rowMask
         targetRow := rowMask
@@ -274,21 +289,6 @@ func (s *Solver) UnmarshalJSON(data []byte) error {
         }
         s.huntBoard[row] = huntRow
         s.targetBoard[row] = targetRow
-    }
-
-    for _, tempShip := range tempSolver.Fleet {
-        switch tempShip {
-        case Carrier:
-            s.fleet.ships[Carrier] = &ship{Carrier, carrierMask, carrierLength, nil}
-        case Battleship:
-            s.fleet.ships[Battleship] = &ship{Battleship, battleshipMask, battleshipLength, nil}
-        case Submarine:
-            s.fleet.ships[Submarine] = &ship{Submarine, submarineMask, submarineLength, nil}
-        case Cruiser:
-            s.fleet.ships[Cruiser] = &ship{Cruiser, cruiserMask, cruiserLength, nil}
-        case Destroyer:
-            s.fleet.ships[Destroyer] = &ship{Destroyer, destroyerMask, destroyerLength, nil}
-        }
     }
 
     return nil
