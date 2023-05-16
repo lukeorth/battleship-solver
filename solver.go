@@ -293,20 +293,19 @@ func (s *Solver) UnmarshalJSON(data []byte) error {
         s.huntBoard[row] = huntRow
         s.targetBoard[row] = targetRow
     }
-    /*
+
     for _, ship := range s.fleet.ships {
-        remove := true
+        sunk := true
         for _, tempShip := range tempSolver.Fleet {
             if ship.name == tempShip {
-                remove = false
+                sunk = false
                 continue
             }
         }
-        if remove {
-            s.fleet.remove(ship.name)
+        if sunk {
+            ship.sunkAt = Cell(0, 0)
         }
     }
-    */
 
     return nil
 }
