@@ -298,5 +298,18 @@ func (s *Solver) UnmarshalJSON(data []byte) error {
         s.targetBoard[row] = targetRow
     }
 
+    for _, ship := range s.fleet.ships {
+        remove := true
+        for _, tempShip := range tempSolver.Fleet {
+            if ship.name == tempShip {
+                remove = false
+                continue
+            }
+        }
+        if remove {
+            s.fleet.remove(ship.name)
+        }
+    }
+
     return nil
 }
