@@ -60,8 +60,10 @@ func (f *fleet) getBiggestShipSize() int {
 
 func (f *fleet) sink(position Locator, shipName string) {
     fmt.Println("INSIDE OF SHIP SINK")
+    fmt.Println(shipName)
     ship := f.ships[shipName]
     fmt.Println("GOT SHIP")
+    fmt.Println(ship.name)
     fmt.Println(f.hitCount)
     fmt.Println(ship.length)
     fmt.Println(f.hitCount - ship.length)
