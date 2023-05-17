@@ -302,14 +302,16 @@ func (s *Solver) UnmarshalJSON(data []byte) error {
         for _, tempShip := range tempSolver.Fleet {
             if ship.name == tempShip || ship.sunkAt != nil {
                 sunk = false
-                //continue
+                continue
             }
-            if ship.sunkAt != nil {
+            /*
+            if ship.name == tempShip && ship.sunkAt != nil {
                 fmt.Printf("%s: sunk with checkbox\n", ship.name)
             }
+            */
         }
         if sunk {
-            fmt.Printf("%s: sunk with checkbox\n", ship.name)
+            //fmt.Printf("%s: sunk with checkbox\n", ship.name)
             ship.sunkAt = Cell(0, 0)
         }
     }
