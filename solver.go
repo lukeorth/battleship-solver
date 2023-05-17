@@ -2,7 +2,6 @@ package battleshipsolver
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 )
 
@@ -99,9 +98,9 @@ func (s *Solver) evaluateCol(row int, col int, ship *ship) {
     }
 }
 
-func (s *Solver) sinkShips(ships []*ship) error {
+func (s *Solver) sinkShips(ships []*ship) {
     if len(ships) == 0 {
-        return nil
+        return
     }
     ship := ships[0]
     row := ship.sunkAt.Locate().Row
@@ -133,7 +132,6 @@ func (s *Solver) sinkShips(ships []*ship) error {
     }
     positions := append(rowPositions, colPositions...)
     if len(positions) == 0 {
-        //return errors.New("not a sinkable position")
         s.sinkShips(ships[1:])
     } else if len(positions) > 1 {
         s.targetBoard.mark(Cell(row, col))
@@ -151,7 +149,6 @@ func (s *Solver) sinkShips(ships []*ship) error {
         }
         s.sinkShips(s.fleet.sunkShips())
     }
-    return nil
 }
 
 func (s *Solver) isTargetableRow(row int, col int, ship *ship) bool {
