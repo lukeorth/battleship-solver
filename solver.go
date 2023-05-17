@@ -2,6 +2,7 @@ package battleshipsolver
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 )
 
@@ -98,9 +99,9 @@ func (s *Solver) evaluateCol(row int, col int, ship *ship) {
     }
 }
 
-func (s *Solver) sinkShips(ships []*ship) {
+func (s *Solver) sinkShips(ships []*ship) error {
     if len(ships) == 0 {
-        return
+        return nil
     }
     ship := ships[0]
     row := ship.sunkAt.Locate().Row
@@ -132,7 +133,10 @@ func (s *Solver) sinkShips(ships []*ship) {
     }
     positions := append(rowPositions, colPositions...)
     if len(positions) == 0 {
-        s.sinkShips(ships[1:])
+        s.huntBoard.mark(Cell(row, col))
+        s.fleet.remove(ship.name)
+        return errors.New("not a sinkable position")
+        //s.sinkShips(ships[1:])
     } else if len(positions) > 1 {
         s.targetBoard.mark(Cell(row, col))
         s.sinkShips(ships[1:])
@@ -149,6 +153,7 @@ func (s *Solver) sinkShips(ships []*ship) {
         }
         s.sinkShips(s.fleet.sunkShips())
     }
+    return nil
 }
 
 func (s *Solver) isTargetableRow(row int, col int, ship *ship) bool {
@@ -311,7 +316,6 @@ func (s *Solver) UnmarshalJSON(data []byte) error {
         }
         if sunk {
             fmt.Printf("%s: sunk with checkbox\n", ship.name)
-            ship.sunkAt = Cell(0, 0)
         }
     }
 
