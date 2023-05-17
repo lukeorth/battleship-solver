@@ -3,6 +3,7 @@ package battleshipsolver
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 )
 
 type Solver struct {
@@ -39,6 +40,8 @@ func (s *Solver) Miss(location Locator) {
 
 func (s *Solver) HitAndSunk(location Locator, shipName string) {
     s.fleet.hit()
+    ship := s.fleet.ships[shipName]
+    s.fleet.hitCount -= ship.length
     s.fleet.sink(location, shipName)
 }
 
@@ -305,6 +308,7 @@ func (s *Solver) UnmarshalJSON(data []byte) error {
         if sunk {
             ship.sunkAt = Cell(0, 0)
         }
+        fmt.Printf("%s: sunk at %d, %d\n", ship.name, ship.sunkAt.Locate().Row, ship.sunkAt.Locate().Col)
     }
 
     return nil

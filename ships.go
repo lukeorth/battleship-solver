@@ -58,7 +58,6 @@ func (f *fleet) getBiggestShipSize() int {
 
 func (f *fleet) sink(position Locator, shipName string) {
     ship := f.ships[shipName]
-    f.hitCount -= ship.length
     ship.sunkAt = position
 }
 
