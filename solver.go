@@ -304,11 +304,14 @@ func (s *Solver) UnmarshalJSON(data []byte) error {
                 sunk = false
                 continue
             }
+            if ship.sunkAt != nil {
+                fmt.Printf("%s: sunk with checkbox\n", ship.name)
+            }
         }
         if sunk {
+            fmt.Printf("%s: sunk with checkbox\n", ship.name)
             ship.sunkAt = Cell(0, 0)
         }
-        fmt.Printf("%s: sunk at %d, %d\n", ship.name, ship.sunkAt.Locate().Row, ship.sunkAt.Locate().Col)
     }
 
     return nil
