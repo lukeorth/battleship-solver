@@ -2,7 +2,6 @@ package battleshipsolver
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 )
 
