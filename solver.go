@@ -297,13 +297,14 @@ func (s *Solver) UnmarshalJSON(data []byte) error {
         s.targetBoard[row] = targetRow
     }
 
+    fmt.Println()
     for _, ship := range s.fleet.ships {
         sunk := true
         for _, tempShip := range tempSolver.Fleet {
             if ship.name == tempShip {
                 sunk = false
                 continue
-            } else if ship.sunkAt != nil {
+            } else if ship.name == tempShip && ship.sunkAt != nil {
                 fmt.Printf("%s: sunk with board\n", ship.name)
                 sunk = false
                 s.fleet.hitCount -= ship.length
