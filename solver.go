@@ -2,7 +2,6 @@ package battleshipsolver
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 )
 
@@ -52,49 +51,49 @@ func (s *Solver) Evaluate() {
     for _, ship := range s.fleet.floatingShips() {
         for row := 0; row < boardSize; row++ {
             for col := 0; col < boardSize; col++ {
-                s.evaluateRow(row, col, ship)
-                s.evaluateCol(row, col, ship)
+                s.evaluateRow(Cell(row, col).Locate(),  ship)
+                s.evaluateCol(Cell(row, col).Locate(), ship)
             }
         }
     }
     s.updateBestCell()
 }
 
-func (s *Solver) evaluateRow(row int, col int, ship *ship) {
+func (s *Solver) evaluateRow(loc Location, ship *ship) {
     switch s.isTargetMode() {
     case true:
-        if s.isTargetableRow(row, col, ship) {
+        if s.isTargetableRow(loc, ship) {
             for i := 0; i < ship.length; i++ {
-                s.Probabilities[row][col+i] += 1
+                s.Probabilities[loc.Row][loc.Col+i] += 1
             }
         }
-        if isAlreadyMarked(s.targetBoard[row], pegMask>>col) {
-            s.Probabilities[row][col] = 0
+        if isAlreadyMarked(s.targetBoard[loc.Row], pegMask>>loc.Col) {
+            s.Probabilities[loc.Row][loc.Col] = 0
         }
     case false:
-        if s.isPlayableRow(row, col, ship) {
+        if s.isPlayableRow(loc, ship) {
             for i := 0; i < ship.length; i++ {
-                s.Probabilities[row][col+i] += 1
+                s.Probabilities[loc.Row][loc.Col+i] += 1
             }
         }
     }
 }
 
-func (s *Solver) evaluateCol(row int, col int, ship *ship) {
+func (s *Solver) evaluateCol(loc Location, ship *ship) {
     switch s.isTargetMode() {
     case true:
-        if s.isTargetableCol(row, col, ship) {
+        if s.isTargetableCol(loc, ship) {
             for i := 0; i < ship.length; i++ {
-                s.Probabilities[row+i][col] += 1
+                s.Probabilities[loc.Row+i][loc.Col] += 1
             }
         }
-        if isAlreadyMarked(s.targetBoard[row], pegMask>>col) {
-            s.Probabilities[row][col] = 0
+        if isAlreadyMarked(s.targetBoard[loc.Row], pegMask>>loc.Col) {
+            s.Probabilities[loc.Row][loc.Col] = 0
         }
     case false:
-        if s.isPlayableCol(row, col, ship) {
+        if s.isPlayableCol(loc, ship) {
             for i := 0; i < ship.length; i++ {
-                s.Probabilities[row+i][col] += 1
+                s.Probabilities[loc.Row+i][loc.Col] += 1
             }
         }
     }
@@ -115,12 +114,12 @@ func (s *Solver) sinkShips(ships []*ship) {
     hitRow := (^s.targetBoard[row]) | (pegMask>>col)
 
     for i := 0; i < ship.length; i++ {
-        if s.isPlayableRow(row, colShift + i, ship) {
+        if s.isPlayableRow(Cell(row, colShift + i).Locate(), ship) {
             if hitRow == ship.mask>>(colShift + i) | hitRow {
                 rowPositions = append(rowPositions, []int{row, colShift + i})
             }
         }
-        if s.isPlayableCol(rowShift + i, col, ship) {
+        if s.isPlayableCol(Cell(rowShift + i, col).Locate(), ship) {
             var rowCopy uint
             for j := 0; j < ship.length; j++ {
                 if rowShift + i + j != row {
@@ -136,8 +135,7 @@ func (s *Solver) sinkShips(ships []*ship) {
     if len(positions) == 0 {
         s.huntBoard.mark(Cell(row, col))
         s.fleet.remove(ship.name)
-        //return errors.New("not a sinkable position")
-        s.Errors = append(s.Errors, errors.New(fmt.Sprintf("Illegal sink: %s at %s\n%w", ship.name, Cell(row, col).Locate().Position)))
+        s.Errors = append(s.Errors, fmt.Errorf("Illegal sink: %s at %s", ship.name, Cell(row, col).Locate().Position))
         s.sinkShips(ships[1:])
     } else if len(positions) > 1 {
         s.targetBoard.mark(Cell(row, col))
@@ -157,38 +155,38 @@ func (s *Solver) sinkShips(ships []*ship) {
     }
 }
 
-func (s *Solver) isTargetableRow(row int, col int, ship *ship) bool {
-    if s.isPlayableRow(row, col, ship) {
-        return isTargetable(s.targetBoard[row], ship.mask>>col) 
+func (s *Solver) isTargetableRow(loc Location, ship *ship) bool {
+    if s.isPlayableRow(loc, ship) {
+        return isTargetable(s.targetBoard[loc.Row], ship.mask>>loc.Col) 
     }
     return false
 }
 
-func (s *Solver) isTargetableCol(row int, col int, ship *ship) bool {
-    if s.isPlayableCol(row, col, ship) {
-        rowCopy := s.targetBoard[row]
+func (s *Solver) isTargetableCol(loc Location, ship *ship) bool {
+    if s.isPlayableCol(loc, ship) {
+        rowCopy := s.targetBoard[loc.Row]
         for i := 0; i < ship.length; i++ {
-            rowCopy &= s.targetBoard[row + i]
+            rowCopy &= s.targetBoard[loc.Row + i]
         }
-        return isTargetable(rowCopy, pegMask>>col)
+        return isTargetable(rowCopy, pegMask>>loc.Col)
     }
     return false
 }
 
-func (s *Solver) isPlayableRow(row int, col int, ship *ship) bool {
-    if isInBounds(col, ship.length) {
-        return isPlayable(s.huntBoard[row], ship.mask>>col)
+func (s *Solver) isPlayableRow(loc Location, ship *ship) bool {
+    if isInBounds(loc.Col, ship.length) {
+        return isPlayable(s.huntBoard[loc.Row], ship.mask>>loc.Col)
     }
     return false
 }
 
-func (s *Solver) isPlayableCol(row int, col int, ship *ship) bool {
-    if isInBounds(row, ship.length) {
-        rowCopy := s.huntBoard[row]
+func (s *Solver) isPlayableCol(loc Location, ship *ship) bool {
+    if isInBounds(loc.Row, ship.length) {
+        rowCopy := s.huntBoard[loc.Row]
         for i := 0; i < ship.length; i++ {
-            rowCopy &= s.huntBoard[row+i]
+            rowCopy &= s.huntBoard[loc.Row+i]
         }
-        return isPlayable(rowCopy, pegMask>>col)
+        return isPlayable(rowCopy, pegMask>>loc.Col)
     }
     return false
 }
