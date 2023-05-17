@@ -71,7 +71,7 @@ func (s *Solver) evaluateRow(loc Location, ship *ship) {
             s.Probabilities[loc.Row][loc.Col] = 0
         }
     case false:
-        if s.isPlayableRow(loc, ship) {
+        if s.isPlayableRow(loc.Row, loc.Col, ship) {
             for i := 0; i < ship.length; i++ {
                 s.Probabilities[loc.Row][loc.Col+i] += 1
             }
@@ -91,7 +91,7 @@ func (s *Solver) evaluateCol(loc Location, ship *ship) {
             s.Probabilities[loc.Row][loc.Col] = 0
         }
     case false:
-        if s.isPlayableCol(loc, ship) {
+        if s.isPlayableCol(loc.Row, loc.Col, ship) {
             for i := 0; i < ship.length; i++ {
                 s.Probabilities[loc.Row+i][loc.Col] += 1
             }
@@ -114,12 +114,12 @@ func (s *Solver) sinkShips(ships []*ship) {
     hitRow := (^s.targetBoard[row]) | (pegMask>>col)
 
     for i := 0; i < ship.length; i++ {
-        if s.isPlayableRow(Cell(row, colShift + i).Locate(), ship) {
+        if s.isPlayableRow(row, colShift + i, ship) {
             if hitRow == ship.mask>>(colShift + i) | hitRow {
                 rowPositions = append(rowPositions, []int{row, colShift + i})
             }
         }
-        if s.isPlayableCol(Cell(rowShift + i, col).Locate(), ship) {
+        if s.isPlayableCol(rowShift + i, col, ship) {
             var rowCopy uint
             for j := 0; j < ship.length; j++ {
                 if rowShift + i + j != row {
@@ -156,14 +156,14 @@ func (s *Solver) sinkShips(ships []*ship) {
 }
 
 func (s *Solver) isTargetableRow(loc Location, ship *ship) bool {
-    if s.isPlayableRow(loc, ship) {
+    if s.isPlayableRow(loc.Row, loc.Col, ship) {
         return isTargetable(s.targetBoard[loc.Row], ship.mask>>loc.Col) 
     }
     return false
 }
 
 func (s *Solver) isTargetableCol(loc Location, ship *ship) bool {
-    if s.isPlayableCol(loc, ship) {
+    if s.isPlayableCol(loc.Row, loc.Col, ship) {
         rowCopy := s.targetBoard[loc.Row]
         for i := 0; i < ship.length; i++ {
             rowCopy &= s.targetBoard[loc.Row + i]
@@ -173,20 +173,20 @@ func (s *Solver) isTargetableCol(loc Location, ship *ship) bool {
     return false
 }
 
-func (s *Solver) isPlayableRow(loc Location, ship *ship) bool {
-    if isInBounds(loc.Col, ship.length) {
-        return isPlayable(s.huntBoard[loc.Row], ship.mask>>loc.Col)
+func (s *Solver) isPlayableRow(row int, col int, ship *ship) bool {
+    if isInBounds(col, ship.length) {
+        return isPlayable(s.huntBoard[row], ship.mask>>col)
     }
     return false
 }
 
-func (s *Solver) isPlayableCol(loc Location, ship *ship) bool {
-    if isInBounds(loc.Row, ship.length) {
-        rowCopy := s.huntBoard[loc.Row]
+func (s *Solver) isPlayableCol(row int, col int, ship *ship) bool {
+    if isInBounds(row, ship.length) {
+        rowCopy := s.huntBoard[row]
         for i := 0; i < ship.length; i++ {
-            rowCopy &= s.huntBoard[loc.Row+i]
+            rowCopy &= s.huntBoard[row+i]
         }
-        return isPlayable(rowCopy, pegMask>>loc.Col)
+        return isPlayable(rowCopy, pegMask>>col)
     }
     return false
 }
