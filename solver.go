@@ -3,6 +3,7 @@ package battleshipsolver
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 )
 
 type Solver struct {
@@ -299,18 +300,18 @@ func (s *Solver) UnmarshalJSON(data []byte) error {
     for _, ship := range s.fleet.ships {
         sunk := true
         for _, tempShip := range tempSolver.Fleet {
-            if ship.name == tempShip || ship.sunkAt != nil {
+            if ship.name == tempShip {
                 sunk = false
                 continue
+            } else if ship.sunkAt != nil {
+                fmt.Printf("%s: sunk with board\n", ship.name)
+                sunk = false
+                s.fleet.hitCount -= ship.length
+                continue
             }
-            /*
-            if ship.name == tempShip && ship.sunkAt != nil {
-                fmt.Printf("%s: sunk with checkbox\n", ship.name)
-            }
-            */
         }
         if sunk {
-            //fmt.Printf("%s: sunk with checkbox\n", ship.name)
+            fmt.Printf("%s: sunk with checkbox\n", ship.name)
             ship.sunkAt = Cell(0, 0)
         }
     }
