@@ -304,12 +304,12 @@ func (s *Solver) UnmarshalJSON(data []byte) error {
             if ship.name == tempShip {
                 sunk = false
                 continue
-            } else if ship.name == tempShip && ship.sunkAt != nil {
-                fmt.Printf("%s: sunk with board\n", ship.name)
-                sunk = false
-                s.fleet.hitCount -= ship.length
-                continue
             }
+        }
+        if ship.sunkAt != nil {
+            fmt.Printf("%s: sunk with board\n", ship.name)
+            sunk = false
+            s.fleet.hitCount -= ship.length
         }
         if sunk {
             fmt.Printf("%s: sunk with checkbox\n", ship.name)
