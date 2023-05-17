@@ -316,6 +316,7 @@ func (s *Solver) UnmarshalJSON(data []byte) error {
         }
         if sunk {
             fmt.Printf("%s: sunk with checkbox\n", ship.name)
+            s.fleet.remove(ship.name)
         }
     }
 
