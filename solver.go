@@ -141,12 +141,14 @@ func (s *Solver) sinkShips(ships []*ship) {
         s.targetBoard.mark(Cell(row, col))
         s.sinkShips(ships[1:])
     } else if len(rowPositions) == 1 {
+        s.fleet.hitCount -= ship.length
         s.fleet.remove(ship.name)
         for i := 0; i < ship.length; i++ {
             s.huntBoard.mark(Cell(row, rowPositions[0][1] + i))
         }
         s.sinkShips(s.fleet.sunkShips())
     } else {
+        s.fleet.hitCount -= ship.length
         s.fleet.remove(ship.name)
         for i := 0; i < ship.length; i++ {
             s.huntBoard.mark(Cell(colPositions[0][0] + i, col))
@@ -287,16 +289,12 @@ func (s *Solver) UnmarshalJSON(data []byte) error {
     }
 
     for _, ship := range s.fleet.ships {
-        sunk := true
+        sunk := ship.sunkAt == nil
         for _, tempShip := range tempSolver.Fleet {
             if ship.name == tempShip {
                 sunk = false
                 continue
             }
-        }
-        if ship.sunkAt != nil {
-            sunk = false
-            s.fleet.hitCount -= ship.length
         }
         if sunk {
             s.fleet.remove(ship.name)
