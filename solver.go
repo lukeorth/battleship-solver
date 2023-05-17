@@ -2,12 +2,14 @@ package battleshipsolver
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 )
 
 type Solver struct {
     Probabilities *probabilities
     BestCell Location 
+    Errors []error
     fleet *fleet
     huntBoard *board
     targetBoard *board
@@ -98,9 +100,9 @@ func (s *Solver) evaluateCol(row int, col int, ship *ship) {
     }
 }
 
-func (s *Solver) sinkShips(ships []*ship) error {
+func (s *Solver) sinkShips(ships []*ship) {
     if len(ships) == 0 {
-        return nil
+        return
     }
     ship := ships[0]
     row := ship.sunkAt.Locate().Row
@@ -135,6 +137,7 @@ func (s *Solver) sinkShips(ships []*ship) error {
         s.huntBoard.mark(Cell(row, col))
         s.fleet.remove(ship.name)
         //return errors.New("not a sinkable position")
+        s.Errors = append(s.Errors, errors.New(fmt.Sprintf("Illegal sink: %s at %s\n%w", ship.name, Cell(row, col).Locate().Position)))
         s.sinkShips(ships[1:])
     } else if len(positions) > 1 {
         s.targetBoard.mark(Cell(row, col))
@@ -152,7 +155,6 @@ func (s *Solver) sinkShips(ships []*ship) error {
         }
         s.sinkShips(s.fleet.sunkShips())
     }
-    return nil
 }
 
 func (s *Solver) isTargetableRow(row int, col int, ship *ship) bool {
@@ -223,6 +225,11 @@ func isInBounds(position int, shipLen int) bool {
 }
 
 func (s Solver) MarshalJSON() ([]byte, error) {
+    var errorMsgs []string
+    for _, err := range s.Errors {
+        errorMsgs = append(errorMsgs, err.Error())
+    }
+
     bestCell := struct{
         Coordinates []int `json:"coordinates"`
         Position Position `json:"position"`
@@ -231,9 +238,11 @@ func (s Solver) MarshalJSON() ([]byte, error) {
         s.BestCell.Position,
     }
 
+
     return json.Marshal(map[string]interface{}{
         "probabilities": s.Probabilities,
         "bestCell": bestCell,
+        "errors": errorMsgs,
     })
 }
 
@@ -247,26 +256,6 @@ func (s *Solver) UnmarshalJSON(data []byte) error {
     s.huntBoard = &board{}
     s.targetBoard = &board{}
     s.fleet = buildFleet()
-    /*
-    s.fleet = &fleet{
-        ships: make(map[string]*ship),
-    }
-
-    for _, tempShip := range tempSolver.Fleet {
-        switch tempShip {
-        case Carrier:
-            s.fleet.ships[Carrier] = &ship{Carrier, carrierMask, carrierLength, nil}
-        case Battleship:
-            s.fleet.ships[Battleship] = &ship{Battleship, battleshipMask, battleshipLength, nil}
-        case Submarine:
-            s.fleet.ships[Submarine] = &ship{Submarine, submarineMask, submarineLength, nil}
-        case Cruiser:
-            s.fleet.ships[Cruiser] = &ship{Cruiser, cruiserMask, cruiserLength, nil}
-        case Destroyer:
-            s.fleet.ships[Destroyer] = &ship{Destroyer, destroyerMask, destroyerLength, nil}
-        }
-    }
-    */
 
     for row := 0; row < boardSize; row++ {
         huntRow := rowMask
@@ -299,7 +288,6 @@ func (s *Solver) UnmarshalJSON(data []byte) error {
         s.targetBoard[row] = targetRow
     }
 
-    fmt.Println()
     for _, ship := range s.fleet.ships {
         sunk := true
         for _, tempShip := range tempSolver.Fleet {
@@ -309,12 +297,10 @@ func (s *Solver) UnmarshalJSON(data []byte) error {
             }
         }
         if ship.sunkAt != nil {
-            fmt.Printf("%s: sunk with board\n", ship.name)
             sunk = false
             s.fleet.hitCount -= ship.length
         }
         if sunk {
-            fmt.Printf("%s: sunk with checkbox\n", ship.name)
             s.fleet.remove(ship.name)
         }
     }
