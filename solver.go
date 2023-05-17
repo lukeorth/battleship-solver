@@ -135,8 +135,8 @@ func (s *Solver) sinkShips(ships []*ship) error {
     if len(positions) == 0 {
         s.huntBoard.mark(Cell(row, col))
         s.fleet.remove(ship.name)
-        return errors.New("not a sinkable position")
-        //s.sinkShips(ships[1:])
+        //return errors.New("not a sinkable position")
+        s.sinkShips(ships[1:])
     } else if len(positions) > 1 {
         s.targetBoard.mark(Cell(row, col))
         s.sinkShips(ships[1:])
