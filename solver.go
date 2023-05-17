@@ -305,7 +305,5 @@ func (s *Solver) UnmarshalJSON(data []byte) error {
         }
     }
 
-    fmt.Println(s.fleet.hitCount)
-
     return nil
 }
