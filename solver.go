@@ -297,6 +297,7 @@ func (s *Solver) UnmarshalJSON(data []byte) error {
             }
         }
         if ship.sunkAt != nil {
+            s.fleet.hitCount -= 1
             sunk = false
         }
         if sunk {
