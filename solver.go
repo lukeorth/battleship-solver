@@ -3,7 +3,6 @@ package battleshipsolver
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 )
 
 type Solver struct {
