@@ -135,6 +135,7 @@ func (s *Solver) sinkShips(ships []*ship) {
     positions := append(rowPositions, colPositions...)
     if len(positions) == 0 {
         s.huntBoard.mark(Cell(row, col))
+        s.fleet.hitCount -= 1
         s.fleet.remove(ship.name)
         s.Errors = append(s.Errors, fmt.Errorf("Illegal sink: %s at %s", ship.name, Cell(row, col).Locate().Position))
         s.sinkShips(ships[1:])
@@ -297,7 +298,6 @@ func (s *Solver) UnmarshalJSON(data []byte) error {
             } 
         }
         if sunk {
-            s.fleet.hitCount -= 1
             s.fleet.remove(ship.name)
         }
     }
