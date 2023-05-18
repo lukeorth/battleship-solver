@@ -294,11 +294,9 @@ func (s *Solver) UnmarshalJSON(data []byte) error {
         for _, tempShip := range tempSolver.Fleet {
             if ship.name == tempShip {
                 sunk = false
+            } else {
+                s.fleet.hitCount -= 1
             }
-        }
-        if ship.sunkAt != nil {
-            s.fleet.hitCount -= 1
-            sunk = false
         }
         if sunk {
             s.fleet.remove(ship.name)
