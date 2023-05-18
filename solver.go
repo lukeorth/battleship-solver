@@ -56,6 +56,7 @@ func (s *Solver) Evaluate() {
             }
         }
     }
+    fmt.Println(s.fleet.hitCount)
     s.updateBestCell()
 }
 
@@ -303,8 +304,6 @@ func (s *Solver) UnmarshalJSON(data []byte) error {
             s.fleet.remove(ship.name)
         }
     }
-
-    fmt.Println(s.fleet.hitCount)
 
     return nil
 }
