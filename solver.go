@@ -56,7 +56,6 @@ func (s *Solver) Evaluate() {
             }
         }
     }
-    fmt.Println(s.fleet.hitCount)
     s.updateBestCell()
 }
 
